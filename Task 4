@@ -1,0 +1,188 @@
+import java.util.*;
+import java.util.concurrent.*;
+
+class Question {
+    String question;
+    String[] options;
+    int correctAnswer;
+
+    Question(String question, String[] options, int correctAnswer) {
+        this.question = question;
+        this.options = options;
+        this.correctAnswer = correctAnswer;
+    }
+}
+
+public class QuizApplication {
+
+    static Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+
+        ArrayList<Question> questions = new ArrayList<>();
+
+        // Quiz Questions
+        questions.add(new Question(
+                "Which language is mainly used for Android development?",
+                new String[]{"C", "Java", "HTML", "SQL"},
+                2));
+
+        questions.add(new Question(
+                "Which keyword is used to inherit a class in Java?",
+                new String[]{"this", "super", "extends", "implements"},
+                3));
+
+        questions.add(new Question(
+                "Which of the following is not a Java data type?",
+                new String[]{"int", "float", "boolean", "real"},
+                4));
+
+        questions.add(new Question(
+                "Which method is the entry point of a Java program?",
+                new String[]{"start()", "main()", "run()", "execute()"},
+                2));
+
+        questions.add(new Question(
+                "Which symbol is used to end a Java statement?",
+                new String[]{".", ",", ";", ":"},
+                3));
+
+        int score = 0;
+        int correct = 0;
+        int incorrect = 0;
+        int unanswered = 0;
+
+        ArrayList<String> result = new ArrayList<>();
+
+        System.out.println("======================================");
+        System.out.println("       QUIZ APPLICATION");
+        System.out.println("======================================");
+        System.out.println("You have 10 seconds for each question.");
+        System.out.println();
+
+        for (int i = 0; i < questions.size(); i++) {
+
+            Question q = questions.get(i);
+
+            System.out.println("--------------------------------------");
+            System.out.println("Question " + (i + 1) + " of " + questions.size());
+            System.out.println("--------------------------------------");
+
+            System.out.println(q.question);
+
+            for (int j = 0; j < q.options.length; j++) {
+                System.out.println((j + 1) + ". " + q.options[j]);
+            }
+
+            System.out.println();
+            System.out.println("Time limit: 10 seconds");
+            System.out.print("Enter your answer (1-4): ");
+
+            // Timer
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+
+            Future<String> future = executor.submit(() -> scanner.nextLine());
+
+            try {
+
+                String answer = future.get(10, TimeUnit.SECONDS);
+
+                int selectedAnswer;
+
+                try {
+                    selectedAnswer = Integer.parseInt(answer);
+
+                    if (selectedAnswer < 1 || selectedAnswer > 4) {
+                        System.out.println("Invalid option!");
+                        incorrect++;
+                        result.add("Question " + (i + 1) + ": Incorrect");
+                    }
+                    else if (selectedAnswer == q.correctAnswer) {
+                        System.out.println("Correct Answer!");
+                        score++;
+                        correct++;
+                        result.add("Question " + (i + 1) + ": Correct");
+                    }
+                    else {
+                        System.out.println("Wrong Answer!");
+                        System.out.println("Correct answer: "
+                                + q.options[q.correctAnswer - 1]);
+                        incorrect++;
+                        result.add("Question " + (i + 1) + ": Incorrect");
+                    }
+
+                } catch (NumberFormatException e) {
+
+                    System.out.println("Please enter a number between 1 and 4.");
+                    incorrect++;
+                    result.add("Question " + (i + 1) + ": Incorrect");
+                }
+
+            } catch (TimeoutException e) {
+
+                System.out.println("\nTime's up!");
+                System.out.println("Correct answer: "
+                        + q.options[q.correctAnswer - 1]);
+
+                unanswered++;
+                result.add("Question " + (i + 1) + ": Unanswered");
+
+                future.cancel(true);
+
+            } catch (Exception e) {
+
+                System.out.println("Error occurred while taking answer.");
+                unanswered++;
+                result.add("Question " + (i + 1) + ": Unanswered");
+            }
+
+            executor.shutdownNow();
+
+            System.out.println();
+        }
+
+        // Final Result
+        System.out.println("======================================");
+        System.out.println("             QUIZ RESULT");
+        System.out.println("======================================");
+
+        System.out.println("Total Questions : " + questions.size());
+        System.out.println("Correct Answers : " + correct);
+        System.out.println("Incorrect Answers : " + incorrect);
+        System.out.println("Unanswered       : " + unanswered);
+        System.out.println("Final Score      : " + score + "/" + questions.size());
+
+        double percentage =
+                ((double) score / questions.size()) * 100;
+
+        System.out.printf("Percentage       : %.2f%%\n", percentage);
+
+        System.out.println();
+        System.out.println("---------- Answer Summary ----------");
+
+        for (String r : result) {
+            System.out.println(r);
+        }
+
+        System.out.println("======================================");
+
+        if (percentage >= 80) {
+            System.out.println("Excellent Performance!");
+        }
+        else if (percentage >= 60) {
+            System.out.println("Good Performance!");
+        }
+        else if (percentage >= 40) {
+            System.out.println("Average Performance!");
+        }
+        else {
+            System.out.println("Needs Improvement!");
+        }
+
+        System.out.println("======================================");
+        System.out.println("       Thank you for playing!");
+        System.out.println("======================================");
+
+        scanner.close();
+    }
+}
